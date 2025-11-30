@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    container_name: ssh-client-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./data/ssh_client.db
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-u6UEoDuI6AcOSvakMRw4hZh83tj37UNUReS7Ml6iGDc=}
+      - LOG_DIR=/app/logs
+      - DEBUG=true
+      - ALLOWED_ORIGINS=http://localhost,http://localhost:80,http://localhost:5173
+      - BACKEND_HOST=0.0.0.0
+      - BACKEND_PORT=8000
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    container_name: ssh-client-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  logs:
+  data:
