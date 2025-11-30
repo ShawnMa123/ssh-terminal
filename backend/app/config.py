@@ -2,9 +2,9 @@
 Application configuration management
 """
 import os
-from typing import List
+from typing import List, Union
 from pydantic_settings import BaseSettings
-from pydantic import Field
+from pydantic import Field, field_validator
 
 
 class Settings(BaseSettings):
@@ -29,10 +29,18 @@ class Settings(BaseSettings):
     encryption_key: str = Field(..., env="ENCRYPTION_KEY")
 
     # CORS
-    allowed_origins: List[str] = Field(
+    allowed_origins: Union[List[str], str] = Field(
         default=["http://localhost:5173", "http://localhost:80"],
         env="ALLOWED_ORIGINS"
     )
+
+    @field_validator("allowed_origins", mode="before")
+    @classmethod
+    def parse_allowed_origins(cls, v):
+        """Parse comma-separated string into list"""
+        if isinstance(v, str):
+            return [origin.strip() for origin in v.split(",") if origin.strip()]
+        return v
 
     # Logging
     log_dir: str = Field(default="./logs", env="LOG_DIR")
