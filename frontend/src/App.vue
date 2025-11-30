@@ -79,13 +79,35 @@ async function handleConnect(server) {
 // Handle quick connect
 async function handleQuickConnect(params) {
   try {
-    const response = await axios.post('/api/sessions', params)
+    const response = await axios.post('/api/sessions/', params)
 
     activeSessionId.value = response.data.session_id
     activeServerName.value = params.host
   } catch (error) {
     console.error('Failed to connect:', error)
-    alert(`连接失败: ${error.response?.data?.detail || error.message}`)
+
+    // Handle different error formats
+    let errorMessage = '未知错误'
+    if (error.response?.data) {
+      const data = error.response.data
+      if (data.detail) {
+        // FastAPI error detail
+        if (typeof data.detail === 'string') {
+          errorMessage = data.detail
+        } else if (Array.isArray(data.detail)) {
+          // Validation errors
+          errorMessage = data.detail.map(e => `${e.loc.join('.')}: ${e.msg}`).join(', ')
+        } else {
+          errorMessage = JSON.stringify(data.detail)
+        }
+      } else {
+        errorMessage = JSON.stringify(data)
+      }
+    } else if (error.message) {
+      errorMessage = error.message
+    }
+
+    alert(`连接失败: ${errorMessage}`)
   }
 }
 

@@ -15,7 +15,8 @@ class SSHSession(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     session_id = Column(String(64), unique=True, nullable=False, index=True)
-    server_id = Column(Integer, ForeignKey("ssh_servers.id"), nullable=False)
+    server_id = Column(Integer, ForeignKey("ssh_servers.id"), nullable=True)  # nullable for quick connect
+    credential_id = Column(Integer, ForeignKey("credentials.id"), nullable=True)
     status = Column(String(20), nullable=False, default="active")  # active, closed, error
     log_file_path = Column(String(512), nullable=True)
     started_at = Column(DateTime, default=datetime.utcnow, nullable=False)
