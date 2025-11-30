@@ -15,9 +15,7 @@ cryptography==41.0.7
 
 # Environment
 python-dotenv==1.0.0
-
-# CORS
-python-cors==1.0.0
+pydantic-settings==2.0.3
 
 # Async
 aiofiles==23.2.1
