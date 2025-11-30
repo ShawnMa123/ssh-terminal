@@ -183,7 +183,11 @@ class SSHConnection:
                         # Send to callback
                         if self.on_data:
                             try:
-                                self.on_data(data)
+                                import inspect
+                                result = self.on_data(data)
+                                # If callback is async, schedule it as a task
+                                if inspect.iscoroutine(result):
+                                    asyncio.create_task(result)
                             except Exception as e:
                                 logger.error(f"Error in data callback: {e}")
 
