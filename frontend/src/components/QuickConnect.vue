@@ -52,7 +52,7 @@
 <script setup>
 import { ref } from 'vue'
 
-defineEmits(['connect'])
+const emit = defineEmits(['connect'])
 
 const form = ref({
   host: '',
@@ -76,8 +76,6 @@ function handleSubmit() {
 
   emit('connect', params)
 }
-
-const emit = defineEmits(['connect'])
 </script>
 
 <style scoped>
