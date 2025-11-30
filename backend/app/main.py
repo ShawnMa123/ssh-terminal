@@ -7,6 +7,9 @@ from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 
 from app.config import settings
+from app.database import engine, Base
+from app.services.ssh_manager import ssh_manager
+from app.routers import servers, credentials, sessions, websocket
 
 
 @asynccontextmanager
@@ -18,10 +21,17 @@ async def lifespan(app: FastAPI):
     print(f"📁 Log directory: {settings.log_dir}")
     print(f"🔐 Encryption: {'Enabled' if settings.encryption_key else 'Disabled'}")
 
+    # Initialize database tables
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    print("✅ Database tables initialized")
+
     yield
 
     # Shutdown
     print("👋 Shutting down application...")
+    await ssh_manager.disconnect_all()
+    print("✅ All SSH connections closed")
 
 
 # Create FastAPI app
@@ -68,13 +78,11 @@ async def root():
     }
 
 
-# API routes will be added here
-# from app.api import sessions, servers, credentials, logs, websocket
-# app.include_router(sessions.router, prefix="/api/sessions", tags=["Sessions"])
-# app.include_router(servers.router, prefix="/api/servers", tags=["Servers"])
-# app.include_router(credentials.router, prefix="/api/credentials", tags=["Credentials"])
-# app.include_router(logs.router, prefix="/api/logs", tags=["Logs"])
-# app.include_router(websocket.router, prefix="/ws", tags=["WebSocket"])
+# Register API routers
+app.include_router(servers.router)
+app.include_router(credentials.router)
+app.include_router(sessions.router)
+app.include_router(websocket.router)
 
 
 if __name__ == "__main__":
